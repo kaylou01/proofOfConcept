@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Immersive art</title>
+    <style type="text/css">
+        body {
+            margin: 0;
+            background-color: navy;
+            color: white;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!--Adds in instructions as a html page before entering xr world-->
+    <h2>*Use your VR headset to access VR world and be immersed in spcae 🚀. Press the select button on your right controller to add random planets 🪐; press selcet again to change thier texture randomly🌌*</h2>
+    <script type="module">
+        // Import three js 
+        import * as THREE from 'https://unpkg.com/three@0.139.2/build/three.module.js';
+        // Import the default VRButton to access webxr api
+        import { VRButton } from 'https://unpkg.com/three@0.139.2/examples/jsm/webxr/VRButton.js';
+        // Import  the gltf loader to add in models 
+        import { GLTFLoader } from 'http://localhost:3000/GLTFLoader.js';
+        // if this was an ar experience use ar button instead
+        import { ARButton } from 'https://unpkg.com/three/examples/jsm/webxr/ARButton.js';
+
+        // Variables for set up and user interaction
+        var container;
+			var camera, scene, renderer;
+			var controller;
+
+        // Allows 3D models with textures to be added in
+        const gltfLoader = new GLTFLoader();
+
+        // Calling functions 
+		init();
+		animate();
+        addEnvMapp();
+
+        // adds a 360 background to wrok with either worldorbit controls or vr headset movment 
+            function addEnvMapp(){
+                // build the url structure to the map
+                var urls =[
+                    'cubes/px.png',
+                    'cubes/nx.png',
+                    'cubes/py.png',
+                    'cubes/ny.png',
+                    'cubes/pz.png',
+                    'cubes/nz.png',
+                ];
+                // created the cubetexture by using array of cube images
+                var cubeTextureLoader = new THREE.CubeTextureLoader().load(urls);
+
+                // add background
+                scene.background = cubeTextureLoader;
+            }
+
+            
+			function init() {
+                // setting up scene and camera for for users prespective through headset
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				scene = new THREE.Scene();
+
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.01, 1000 );
+
+
+                // Add some lights
+                var light = new THREE.DirectionalLight(0xffffff,0.5);
+                light.position.set(1, 1, 1).normalize();
+                scene.add(light);
+                scene.add(new THREE.AmbientLight(0xffffff,0.5))
+
+                const plight = new THREE.PointLight(0xffffff);
+                scene.add(plight)
+
+				renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.xr.enabled = true;
+				container.appendChild( renderer.domElement );
+
+				// add in vr button to enter/exist vr world 
+				document.body.appendChild( VRButton.createButton( renderer ) );
+
+				// array of planet textures and using texture loader to add they as a material to the spheres
+                const geometry = new THREE.SphereGeometry(0.25, 32, 32); // (radius, widthSegments, heightSegments)
+                const planetTexture = new THREE.TextureLoader();
+                var texturesList = [
+                    'planets/mercury.jpg',
+                    'planets/venus.jpg',
+                    'planets/mars.jpg',
+                    'planets/jupiter.jpg',
+                    'planets/saturn.jpg',
+                    'planets/uranus.jpg',
+                    'planets/neptune.jpg',
+                    'planets/moon.jpg',
+                    ];
+
+                // function when user presses select button will add sphere and give it a ramdom texture from array
+				function onSelect() {
+                    
+                    var randIndex = THREE.Math.randInt(0, texturesList.length - 1);
+                    var randTexture = planetTexture.load(texturesList[randIndex]);
+					var material = new THREE.MeshPhongMaterial({ map: randTexture });
+					var planets = new THREE.Mesh( geometry, material );
+                    // setting the created objects postion where user controller is
+					planets.position.set( 0, 0, - 0.3 ).applyMatrix4( controller.matrixWorld );
+					planets.quaternion.setFromRotationMatrix( controller.matrixWorld );
+					scene.add( planets );
+                    // console logs the texture
+                    console.log(texturesList[randIndex]);
+				}
+
+                // using xr controllers with an addeventlistener to check when user presses select button
+				controller = renderer.xr.getController( 0 );
+				controller.addEventListener( 'select', onSelect );
+				scene.add( controller );
+               
+				// resize 
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+	// adding in models 
+
+        // earth model 
+        const pTexture = new THREE.TextureLoader().load('planets/earth.jpg');
+
+        const geometry = new THREE.SphereGeometry(2.5, 32, 32); // (radius, widthSegments, heightSegments)
+        const material = new THREE.MeshBasicMaterial( {map: pTexture} );
+        const sphere = new THREE.Mesh(geometry, material);
+        sphere.position.set(0, 0, -10);
+        scene.add(sphere);
+
+       // sun model 
+
+        const sunTexture = new THREE.TextureLoader().load('planets/sun.jpg');
+
+        const sunShape = new THREE.SphereGeometry(5, 32, 32); // (radius, widthSegments, heightSegments)
+        const material2 = new THREE.MeshBasicMaterial( {map: sunTexture} );
+        const sun = new THREE.Mesh(sunShape, material2);
+        sun.position.set(20, 10, -15);
+        scene.add(sun);
+
+
+        var alienShip;
+        gltfLoader.load('/models/alien.gltf', (gltf) => {
+        alienShip = gltf.scene;
+        scene.add(alienShip)
+        gltf.scene.scale.set(0.5,0.5,0.5)
+        gltf.scene.position.set(0,7,-10)
+        
+    })
+
+    var rocketModel;
+        gltfLoader.load('/models/rocketShip.gltf', (gltf) => {
+        rocketModel = gltf.scene;
+        sphere.add(rocketModel)
+        gltf.scene.scale.set(0.5,0.5,0.5)
+        gltf.scene.position.x =5;
+        
+    })
+
+    
+        // Add in array of stars png on plane 
+        function starArray() {
+        const sunTexture = new THREE.TextureLoader().load('planets/starShape.png');
+        const geometry = new THREE.PlaneGeometry(1,1);
+        const material = new THREE.MeshPhongMaterial({map: sunTexture , transparent: true })
+        const star = new THREE.Mesh(geometry, material)
+        const [x, y, z] = Array(3).fill().map(() =>THREE.MathUtils.randFloatSpread(150))
+        star.position.set(x, y, z)
+        sun.add(star) 
+        }
+        // adds in 400 star pngs
+        Array(400).fill().forEach(starArray);
+
+    
+			function animate() {
+                
+				renderer.setAnimationLoop( render );
+
+			}
+            // allows objects to have a anaintion when scene is rendered
+			function render() {
+                alienShip.rotation.y += 0.01;
+                sphere.rotation.y += 0.01;
+                sun.rotation.y -= 0.001;
+                
+				renderer.render( scene, camera );
+
+			}
+
+    </script>
+</body>
+</html>

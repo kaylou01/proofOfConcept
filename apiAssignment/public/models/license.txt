@@ -1,0 +1,11 @@
+Model Information:
+* title:	Orb Hovering
+* source:	https://sketchfab.com/3d-models/orb-hovering-d056f6654d494b4f8cdc7c52aabcac23
+* author:	rayBLAST (https://sketchfab.com/rayblaster)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Orb Hovering" (https://sketchfab.com/3d-models/orb-hovering-d056f6654d494b4f8cdc7c52aabcac23) by rayBLAST (https://sketchfab.com/rayblaster) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
